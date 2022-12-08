@@ -2,8 +2,10 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter_switch/flutter_switch.dart';
 
 import 'vision_detector_views/pose_detector_view.dart';
+import 'package:just_audio/just_audio.dart';
 
 List<CameraDescription> cameras = [];
 
@@ -28,68 +30,123 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class Home extends StatelessWidget {
+class Home extends StatefulWidget {
   const Home({super.key});
+
+  @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+  bool infinite = false;
+
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
 
-    void _trainingConfigurations (){
-      showDialog(
-        context: context, 
-        builder: ((context) {
-          return AlertDialog(
-          title: Text('Ingrese el entrenamiento que realizara hoy'),
-          content: Column(
-            children: [
-              Container(
-                height: 50,
-              ),
-              Text('Series:'),
-              TextField(
-                decoration: InputDecoration(
-                  hintText: 'cantidad de series de su entrenamiento'
-                ),
-                onChanged: (value) {
-                  iSeries = int.parse(value);
-                  print(iSeries);
-                },
-              ),
-              Container(
-                height: 50,
-              ),
-              Text('Repeticiones:'),
-              TextField(
-                decoration: InputDecoration(
-                  hintText: 'cantidad de repeticiones por serie'
-                ),
-                onChanged: ((value) {
-                  iReps = int.parse(value);
-                  print(iReps);
-                }),
-              )
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              }, 
-              child: Text('Aceptar'))
-          ],
-          );
-        })
-      );
-    }
+    /*void playAudio () async{
+      await player.setAsset('assets/sounds/entrenamiento.mp3');
+      player.play();
+    }*/
 
-    void showToast(){
+     void showToast(){
       final scaffold = ScaffoldMessenger.of(context);
       scaffold.showSnackBar(
         SnackBar(
           content: const Text('Se debe configurar el entrenamiento antes de empezar'),
           action: SnackBarAction(label: 'OK', onPressed: scaffold.hideCurrentSnackBar,),
           ),
+      );
+    }
+
+    void errorAlertToast(){
+      final scaffold = ScaffoldMessenger.of(context);
+      scaffold.showSnackBar(
+        SnackBar(
+        content: const Text('Los valores introducidos son invalidos'),
+        action: SnackBarAction(label: 'OK', onPressed: scaffold.hideCurrentSnackBar,),
+        )
+      );
+    }
+
+    void _trainingConfigurations (){
+      showDialog(
+        context: context,
+        builder: ((context) {
+          return AlertDialog(
+          title: Text('Ingrese el entrenamiento que realizara hoy'),
+          content: Container(
+            height: 255,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: Column(
+                children: [
+                  Container(
+                    height: 20,
+                  ),
+                  Text('Series:'),
+                  TextField(
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      hintText: 'cantidad de series de su entrenamiento',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+                    ),
+                    onChanged: (value) {
+                      try{
+                        iSeries = int.parse(value);
+                        print(iSeries);
+                      }catch(e){
+                        errorAlertToast();
+                      }
+                    },
+                  ),
+                  Container(
+                    height: 20,
+                  ),
+                  Text('Repeticiones:'),
+                  TextField(
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      hintText: 'cantidad de repeticiones por serie',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10)))
+                    ),
+                    onChanged: ((value) {
+                      try{
+                        iReps = int.parse(value);
+                      }catch(e){
+                        errorAlertToast();
+                      }
+                    }),
+                  ),
+                  Container(
+                    height: 20,
+                  ),
+                  FlutterSwitch(
+                      activeColor: Colors.green,
+                      inactiveColor: Colors.red,
+                      value: infinite,
+                      disabled: false,
+                      onToggle: (val){
+                        setState(() {
+                          infinite = !infinite;
+                          print(infinite);
+                        });
+                      },
+                  )
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Aceptar'))
+          ],
+          );
+        })
       );
     }
 
@@ -103,7 +160,7 @@ class Home extends StatelessWidget {
           IconButton(
             onPressed: (() {
               _trainingConfigurations();
-            }), 
+            }),
             icon: Icon(Icons.settings),
           )
         ],
@@ -138,7 +195,7 @@ class Home extends StatelessWidget {
                   SingleChildScrollView(
                     child: Tips('assets/images/saludable.png', Colors.lightGreen, 'reduce la susceptibilidad al estrés, aumenta la autoestima'),
                     scrollDirection: Axis.horizontal,
-                  ),      
+                  ),
                 ],
               ),
             ),
@@ -195,5 +252,4 @@ class Home extends StatelessWidget {
       )
     );
   }
-
 }
